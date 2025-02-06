@@ -1,5 +1,6 @@
 from sqlalchemy.orm import declarative_base, relationship
 import sqlalchemy as sq
+from datetime import date
 
 Base = declarative_base()
 
@@ -45,7 +46,7 @@ class Sale(Base):
     __tablename__ = 'sale'
     id = sq.Column(sq.Integer, primary_key=True)
     price = sq.Column(sq.Integer)
-    date_sale = sq.Column(sq.String(length=10))
+    date_sale = sq.Column(sq.Date)
     stock_id = sq.Column(sq.Integer, sq.ForeignKey('stock.id'), nullable=False)
     count = sq.Column(sq.Integer)
     stock = relationship(Stock, backref='sale')

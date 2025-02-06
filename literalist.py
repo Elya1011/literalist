@@ -10,6 +10,7 @@ password = os.getenv('PASSWORD')
 DNS = f'postgresql://{user_SQL}:{password}@localhost:5432/literalist'
 engine = sq.create_engine(DNS)
 
+
 create_tables(engine)
 
 Session = sessionmaker(bind=engine)
@@ -35,15 +36,24 @@ sale5 = Sale(price=600, date_sale='26-10-2022', stock=stock1, count=1)
 session.add_all([publisher1, book1, book2, book3, shop1, shop2, shop3, stock1, stock2, stock3, stock4,
                  sale1, sale2, sale3, sale4, sale5])
 session.commit()
-result = (
+
+def get_shops(id_or_name):
+    result = (
         session.query(Book.title, Shop.name, Sale.price, Sale.date_sale)
-        .join(Stock, Stock.shop_id == Shop.id)  # Соединяем Stock и Shop
+        .select_from(Shop)
+        .join(Stock, Stock.shop_id == Shop.id) # соединили Shop и Stock
+        .join(Book, Book.id == Stock.book_id)  # соединили Book и Stock
+        .join(Publisher, Publisher.id == Book.publisher_id)  # соединяем Publisher и Book
         .join(Sale, Sale.stock_id == Stock.id)  # Соединяем Sale и Stock
-        .join(Book, Book.id == Stock.book_id)   # Соединяем Book и Stock
-        .join(Publisher, Publisher.id == Book.publisher_id)  # Соединяем Publisher и Book
-        .filter(Publisher.name == input())  # Фильтруем по имени издателя
-        .all()
     )
-for row in result:
-    print(row)
-session.close()
+    if id_or_name.isdigit():
+        res = result.filter(Publisher.id == id_or_name).all()
+    else:
+        res = result.filter(Publisher.name == id_or_name).all()
+    for book_name, shop_name, sale, data_sale in res:
+        print(f"{book_name: <20} | {shop_name: <12} | {sale: <5} | {data_sale.strftime('%d-%m-%Y')}")
+
+if __name__ == '__main__':
+    id_or_name = input('Введите имя или id автора: ')
+    get_shops(id_or_name)
+    session.close()
